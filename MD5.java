@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -75,7 +74,7 @@ public class MD5 {
 					 
 					 gravarArq.printf("%s, %s, %d\n", usuarioDigitado, hash, 0);
 					 
-//					 arq.close();
+					 arq.close();
 					 leitor.close();
 					 
 					 System.out.print("\nUsuário Registrado com sucesso!\n");
@@ -101,29 +100,41 @@ public class MD5 {
 					String[] userFound = null;
 					boolean credenciaisIncorretas = false;
 					int tentativas = 0;
+					boolean userBlocked = false;
 					do {
 						linha = leitor.readLine();
-						if(linha.contains(usuarioAutenticacao+",")) {
+						if(linha.contains(usuarioAutenticacao+",") == true) {
 							userFound = linha.split(", ");
-//							System.out.println(userFound[1]);
-//							System.out.println(userFound[0]);
-							
-							if(usuarioAutenticacao.equals(userFound[0]) && hash2.equals(userFound[1])) {
-								System.out.print("\n\nCREDENCIAIS CORRETAS");
-								credenciaisIncorretas = false;
+							tentativas = Integer.parseInt(userFound[2]);
+							if(tentativas >= 5) {
+								userBlocked = true;
+								System.out.print("\n\nNUMERO DE TENTATIVAS EXCEDIDO, USUÁRIO BLOQUEADO");
 							}else {
-								tentativas = Integer.parseInt(userFound[2]);
-								System.out.print(tentativas);
-								credenciaisIncorretas = true;
-								System.out.print("\n\nCREDENCIAIS INCORRETAS");
+								if(usuarioAutenticacao.equals(userFound[0]) && hash2.equals(userFound[1])) {
+									System.out.print("\n\nCREDENCIAIS CORRETAS");
+									credenciaisIncorretas = false;
+								}else {
+									credenciaisIncorretas = true;
+									if(tentativas >= 4) {
+										System.out.print("\n\nNUMERO DE TENTATIVAS EXCEDIDO, USUÁRIO BLOQUEADO");
+									}else {
+										System.out.print("\n\nCREDENCIAIS INCORRETAS");
+									}
+								}
 							}
 		
 							break;
 						}
 					}while((linha = leitor.readLine()) != null);
 					
+					arq.close();
+					gravarArq.close();
 					
-					if(credenciaisIncorretas == true) {
+					
+					if(linha != null && userBlocked == false) {
+						FileWriter arq2 = new FileWriter("/Users/procob/eclipse-workspace/CriptografiaEx3/autenticacao.txt");
+						PrintWriter gravarArq2 = new PrintWriter(arq2);
+						
 						String l = leitor.readLine();
 						ArrayList<String> salvar = new ArrayList<String>();
 						
@@ -134,22 +145,27 @@ public class MD5 {
 							
 							l = leitor.readLine();
 						}
-						
-						int tentativasAtualizadas = tentativas+1;
-						System.out.println(tentativasAtualizadas);
-						String novaLinha = usuarioAutenticacao+ ", "+hash2+", "+tentativasAtualizadas+"\n";
-						System.out.println(novaLinha);
-						salvar.add(novaLinha);
-						
-						for(int i = 0; i<salvar.size(); i++) {
-							gravarArq.print(salvar.get(i));
+						if(credenciaisIncorretas == true) {
+							int tentativasAtualizadas = tentativas+1;
+							String novaLinha = userFound[0]+ ", "+userFound[1]+", "+tentativasAtualizadas+"\n";
+							salvar.add(novaLinha);
+							
+						}else {
+							String novaLinha = userFound[0]+ ", "+userFound[1]+", "+0+"\n";
+							salvar.add(novaLinha);
 						}
 						
+						for(int i = 0; i<salvar.size(); i++) {
+							gravarArq2.print(salvar.get(i));
+						}
+						
+						arq2.close();
+						gravarArq2.close();
 					
 					}
 					
-					arq.close();
 					leitor.close();
+					break;
 					
 			}
 		   
